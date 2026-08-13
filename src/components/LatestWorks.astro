@@ -1,0 +1,482 @@
+---
+import { works } from "../data/works";
+
+/*
+	新しい順に並べて
+	最新3件だけ取得
+*/
+const latestWorks = [...works]
+	.sort((a, b) => {
+		return (
+			new Date(b.releaseDate).getTime() -
+			new Date(a.releaseDate).getTime()
+		);
+	})
+	.slice(0, 3);
+
+const formatDate = (dateString: string) => {
+	const [year, month, day] = dateString.split("-");
+
+	return `${year}.${month}.${day}`;
+};
+---
+
+<section class="latest-works">
+	<div class="section-inner">
+
+		<header class="section-heading">
+			<div>
+				<p>LATEST</p>
+				<h2>WORKS</h2>
+			</div>
+
+			<a class="view-all" href="/works">
+				VIEW ALL →
+			</a>
+		</header>
+
+		<div class="works-grid">
+
+			{
+				latestWorks.map((work) => (
+					<article class="work-card">
+
+						<!-- IMAGE -->
+
+						{
+							work.url && work.url !== "#" ? (
+								<a
+									class="image-link"
+									href={work.url}
+									target="_blank"
+									rel="noopener noreferrer"
+									aria-label={`${work.title}の詳細を見る`}
+								>
+									<div class="work-image">
+										{
+											work.image ? (
+												<img
+													src={work.image}
+													alt={work.title}
+												/>
+											) : (
+												<div class="no-image">
+													<span>NO IMAGE</span>
+												</div>
+											)
+										}
+									</div>
+								</a>
+							) : (
+								<div class="work-image">
+									{
+										work.image ? (
+											<img
+												src={work.image}
+												alt={work.title}
+											/>
+										) : (
+											<div class="no-image">
+												<span>NO IMAGE</span>
+											</div>
+										)
+									}
+								</div>
+							)
+						}
+
+						<!-- TYPE -->
+
+						<p class="work-type">
+							{work.type}
+						</p>
+
+						<!-- TITLE -->
+
+						<div class="title-row">
+
+							<h3>
+								{work.title}
+							</h3>
+
+							{
+								work.url &&
+								work.url !== "#" && (
+									<a
+										class="work-link"
+										href={work.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										aria-label={`${work.title}の詳細を見る`}
+										title="VIEW MORE"
+									>
+										→
+									</a>
+								)
+							}
+
+						</div>
+
+						<!-- ARTIST -->
+
+						{
+							work.artist && (
+								<p class="artist">
+									{work.artist}
+								</p>
+							)
+						}
+
+						<!-- RELEASE DATE -->
+
+						<p class="release-date">
+							{formatDate(work.releaseDate)}
+						</p>
+
+					</article>
+				))
+			}
+
+		</div>
+
+	</div>
+</section>
+
+<style>
+	/* =========================
+	   SECTION
+	========================= */
+
+	.latest-works {
+		padding: 92px 40px 110px;
+
+		background:
+			linear-gradient(
+				180deg,
+				#f8fcfe 0%,
+				#ffffff 100%
+			);
+
+		border-top: 1px solid #edf5f8;
+	}
+
+	.section-inner {
+		max-width: 1120px;
+		margin: 0 auto;
+	}
+
+	/* =========================
+	   HEADING
+	========================= */
+
+	.section-heading {
+		display: flex;
+		align-items: flex-end;
+		justify-content: space-between;
+
+		gap: 30px;
+
+		margin-bottom: 34px;
+	}
+
+	.section-heading p {
+		margin: 0 0 7px;
+
+		color: #a7cfe1;
+
+		font-size: 9px;
+
+		letter-spacing: 0.3em;
+	}
+
+	.section-heading h2 {
+		margin: 0;
+
+		color: #72aeca;
+
+		font-size: 30px;
+
+		line-height: 1;
+
+		font-weight: 400;
+
+		letter-spacing: 0.1em;
+	}
+
+	.view-all {
+		padding-bottom: 4px;
+
+		color: #8298a3;
+
+		font-size: 9px;
+
+		letter-spacing: 0.14em;
+
+		text-decoration: none;
+
+		border-bottom: 1px solid #dcecf4;
+
+		transition:
+			color 0.2s ease,
+			border-color 0.2s ease;
+	}
+
+	.view-all:hover {
+		color: #a69ccc;
+		border-color: #a69ccc;
+	}
+
+	/* =========================
+	   GRID
+	========================= */
+
+	.works-grid {
+		display: grid;
+
+		grid-template-columns:
+			repeat(3, minmax(0, 1fr));
+
+		gap: 32px;
+	}
+
+	.work-card {
+		min-width: 0;
+	}
+
+	/* =========================
+	   IMAGE
+	========================= */
+
+	.image-link {
+		display: block;
+
+		text-decoration: none;
+	}
+
+	.work-image {
+		width: 100%;
+
+		aspect-ratio: 1 / 1;
+
+		overflow: hidden;
+
+		background: #f2f8fb;
+
+		border-radius: 18px;
+	}
+
+	.work-image img {
+		display: block;
+
+		width: 100%;
+		height: 100%;
+
+		object-fit: cover;
+
+		transition:
+			transform 0.35s ease;
+	}
+
+	.image-link:hover .work-image img {
+		transform: scale(1.03);
+	}
+
+	.no-image {
+		width: 100%;
+		height: 100%;
+
+		display: flex;
+
+		align-items: center;
+		justify-content: center;
+
+		background:
+			linear-gradient(
+				135deg,
+				#f8fcfe,
+				#edf6fb
+			);
+	}
+
+	.no-image span {
+		color: #b6cbd5;
+
+		font-size: 9px;
+
+		letter-spacing: 0.18em;
+	}
+
+	/* =========================
+	   TYPE
+	========================= */
+
+	.work-type {
+		margin: 16px 0 6px;
+
+		color: #a69ccc;
+
+		font-size: 11px;
+
+		letter-spacing: 0.18em;
+	}
+
+	/* =========================
+	   TITLE
+	========================= */
+
+	.title-row {
+		display: flex;
+
+		align-items: center;
+
+		gap: 10px;
+	}
+
+	.title-row h3 {
+		margin: 0;
+
+		color: #536e7c;
+
+		font-size: 22px;
+
+		line-height: 1.4;
+
+		font-weight: 500;
+	}
+
+	.work-link {
+		display: grid;
+
+		place-items: center;
+
+		width: 18px;
+		height: 18px;
+
+		flex-shrink: 0;
+
+		color: #72aeca;
+
+		font-size: 15px;
+
+		text-decoration: none;
+
+		opacity: 0.6;
+
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease,
+			color 0.2s ease;
+	}
+
+	.work-link:hover {
+		opacity: 1;
+
+		color: #a69ccc;
+
+		transform: translateY(-2px);
+	}
+
+	/* =========================
+	   ARTIST
+	========================= */
+
+	.artist {
+		margin: 8px 0 0;
+
+		color: #8298a3;
+
+		font-size: 12px;
+
+		line-height: 1.5;
+	}
+
+	/* =========================
+	   RELEASE DATE
+	========================= */
+
+	.release-date {
+		margin: 10px 0 0;
+
+		color: #9aadb6;
+
+		font-size: 12px;
+
+		letter-spacing: 0.08em;
+	}
+
+	/* =========================
+	   MOBILE
+	========================= */
+
+	@media (max-width: 700px) {
+		.latest-works {
+			padding: 60px 20px 70px;
+		}
+
+		.section-heading {
+			align-items: flex-end;
+
+			margin-bottom: 24px;
+		}
+
+		.section-heading h2 {
+			font-size: 24px;
+		}
+
+		.view-all {
+			font-size: 8px;
+		}
+
+		.works-grid {
+			grid-template-columns:
+				repeat(2, minmax(0, 1fr));
+
+			gap:
+				30px
+				14px;
+		}
+
+		.work-image {
+			border-radius: 12px;
+		}
+
+		.work-type {
+			margin: 10px 0 4px;
+
+			font-size: 8px;
+		}
+
+		.title-row {
+			gap: 7px;
+		}
+
+		.title-row h3 {
+			font-size: 14px;
+
+			line-height: 1.4;
+		}
+
+		.work-link {
+			width: 14px;
+			height: 14px;
+
+			font-size: 12px;
+		}
+
+		.artist {
+			margin-top: 5px;
+
+			font-size: 9px;
+		}
+
+		.release-date {
+			margin-top: 5px;
+
+			font-size: 8px;
+		}
+
+		.no-image span {
+			font-size: 7px;
+		}
+	}
+</style>

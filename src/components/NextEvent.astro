@@ -1,0 +1,850 @@
+---
+import { events } from "../data/events";
+
+/*
+	現在の日付を日本時間（Asia/Tokyo）で
+	YYYY-MM-DD形式にする
+*/
+const getTodayJST = () => {
+	const parts = new Intl.DateTimeFormat("en-US", {
+		timeZone: "Asia/Tokyo",
+		year: "numeric",
+		month: "2-digit",
+		day: "2-digit",
+	}).formatToParts(new Date());
+
+	const year = parts.find((part) => part.type === "year")?.value;
+	const month = parts.find((part) => part.type === "month")?.value;
+	const day = parts.find((part) => part.type === "day")?.value;
+
+	return `${year}-${month}-${day}`;
+};
+
+const today = getTodayJST();
+
+/*
+	今日以降のイベントを日付順に並べて
+	一番近い1件だけ取得
+*/
+const nextEvent = [...events]
+	.filter((event) => {
+		if (!event.date) return false;
+
+		return event.date >= today;
+	})
+	.sort((a, b) => a.date.localeCompare(b.date))[0];
+
+/*
+	表示用の日付
+*/
+const formatDate = (dateString: string) => {
+	const [year, month, day] = dateString
+		.split("-")
+		.map(Number);
+
+	const weekdays = [
+		"SUN",
+		"MON",
+		"TUE",
+		"WED",
+		"THU",
+		"FRI",
+		"SAT",
+	];
+
+	const weekdayIndex = new Date(
+		Date.UTC(year, month - 1, day)
+	).getUTCDay();
+
+	return {
+		date: `${String(month).padStart(2, "0")}.${String(day).padStart(2, "0")}`,
+		weekday: weekdays[weekdayIndex],
+	};
+};
+
+/*
+	Google Maps
+*/
+const createGoogleMapsUrl = (venue: string) => {
+	return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
+		venue
+	)}`;
+};
+
+/*
+	Google Calendar用日時
+*/
+const formatGoogleDate = (date: Date) => {
+	return date
+		.toISOString()
+		.replace(/[-:]/g, "")
+		.replace(/\.\d{3}/, "");
+};
+
+/*
+	Google Calendar URL
+*/
+const createGoogleCalendarUrl = (
+	event: (typeof events)[number]
+) => {
+	const calendarStartTime =
+		event.open || event.start;
+
+	if (!calendarStartTime) {
+		return null;
+	}
+
+	const startDate = new Date(
+		`${event.date}T${calendarStartTime}:00+09:00`
+	);
+
+	const endDate = new Date(
+		startDate.getTime() +
+			3 * 60 * 60 * 1000
+	);
+
+	const timeInfo = [
+		event.open
+			? `OPEN ${event.open}`
+			: null,
+
+		event.start
+			? `START ${event.start}`
+			: null,
+	]
+		.filter(Boolean)
+		.join(" / ");
+
+	const endTimeNote = event.open
+		? "※終了時刻は未定のため、カレンダー上では開場時刻から3時間後に設定しています。"
+		: "※開場・終了時刻は未定のため、カレンダー上では開演時刻から3時間後に設定しています。";
+
+	const description = [
+		timeInfo,
+		"",
+		endTimeNote,
+
+		event.url &&
+		event.url !== "#"
+			? `\n詳細：\n${event.url}`
+			: null,
+	]
+		.filter(Boolean)
+		.join("\n");
+
+	const params = new URLSearchParams({
+		action: "TEMPLATE",
+		text: event.title,
+
+		dates:
+			`${formatGoogleDate(startDate)}` +
+			`/${formatGoogleDate(endDate)}`,
+
+		location: event.venue,
+		details: description,
+	});
+
+	return (
+		"https://calendar.google.com/calendar/render?" +
+		params.toString()
+	);
+};
+
+const formatted =
+	nextEvent
+		? formatDate(nextEvent.date)
+		: null;
+
+const mapUrl =
+	nextEvent?.venue
+		? createGoogleMapsUrl(nextEvent.venue)
+		: null;
+
+const calendarUrl =
+	nextEvent
+		? createGoogleCalendarUrl(nextEvent)
+		: null;
+---
+
+<section class="next-event">
+
+	<div class="next-event-inner">
+
+		<div class="section-heading">
+
+			<div>
+				<p>UPCOMING</p>
+				<h2>NEXT EVENT</h2>
+			</div>
+
+			<a
+				class="schedule-link"
+				href="/schedule"
+				>
+				VIEW ALL →
+			</a>
+
+		</div>
+
+		{
+			nextEvent && formatted ? (
+
+				<article class="event-card">
+
+					<!-- DATE -->
+
+					<div class="event-date">
+
+						<span class="date-main">
+							{formatted.date}
+						</span>
+
+						<span class="date-weekday">
+							{formatted.weekday}
+						</span>
+
+					</div>
+
+					<!-- EVENT INFORMATION -->
+
+					<div class="event-info">
+
+						<h3>
+							{nextEvent.title}
+						</h3>
+
+						<div class="event-meta">
+
+							{
+								nextEvent.venue && (
+									<div class="venue-row">
+
+										<p>
+											<span>
+												VENUE
+											</span>
+
+											{nextEvent.venue}
+										</p>
+
+										{
+											mapUrl && (
+												<a
+													class="map-link"
+													href={mapUrl}
+													target="_blank"
+													rel="noopener noreferrer"
+													title="Google Mapsで開く"
+												>
+													<img
+														src="/images/icons/googlemaps.svg"
+														alt=""
+													/>
+
+													<span>
+														MAP
+													</span>
+												</a>
+											)
+										}
+
+									</div>
+								)
+							}
+
+							{
+								(nextEvent.open ||
+									nextEvent.start) && (
+									<p>
+										<span>
+											TIME
+										</span>
+
+										{
+											nextEvent.open &&
+											`OPEN ${nextEvent.open}`
+										}
+
+										{
+											nextEvent.open &&
+											nextEvent.start &&
+											" / "
+										}
+
+										{
+											nextEvent.start &&
+											`START ${nextEvent.start}`
+										}
+									</p>
+								)
+							}
+
+						</div>
+
+						{
+							nextEvent.url &&
+							nextEvent.url !== "#" && (
+								<a
+									class="official-link"
+									href={nextEvent.url}
+									target="_blank"
+									rel="noopener noreferrer"
+								>
+									公式情報 →
+								</a>
+							)
+						}
+
+					</div>
+
+					<!-- CALENDAR -->
+
+					{
+						calendarUrl && (
+							<div class="calendar-action">
+
+								<a
+									class="calendar-link"
+									href={calendarUrl}
+									target="_blank"
+									rel="noopener noreferrer"
+									title="Google Calendarに追加"
+								>
+									<img
+										src="/images/icons/googlecalendar.svg"
+										alt=""
+									/>
+
+									<span>
+										追加
+									</span>
+								</a>
+
+							</div>
+						)
+					}
+
+				</article>
+
+			) : (
+
+				<p class="no-event">
+					現在予定されているイベントはありません。
+				</p>
+
+			)
+		}
+
+	</div>
+
+</section>
+
+<style>
+
+	.next-event {
+		padding:
+			92px
+			40px;
+
+		background: #ffffff;
+	}
+
+	.next-event-inner {
+		max-width: 1120px;
+		margin: 0 auto;
+	}
+
+	/* =========================
+	   HEADING
+	========================= */
+
+	.section-heading {
+		display: flex;
+
+		align-items: flex-end;
+		justify-content: space-between;
+
+		gap: 30px;
+
+		margin-bottom: 34px;
+	}
+
+	.section-heading p {
+		margin:
+			0
+			0
+			7px;
+
+		color: #a7cfe1;
+
+		font-size: 9px;
+
+		letter-spacing: 0.3em;
+	}
+
+	.section-heading h2 {
+		margin: 0;
+
+		color: #72aeca;
+
+		font-size: 30px;
+
+		line-height: 1;
+
+		font-weight: 400;
+
+		letter-spacing: 0.1em;
+	}
+
+	.schedule-link {
+		padding-bottom: 4px;
+
+		color: #8298a3;
+
+		font-size: 9px;
+
+		letter-spacing: 0.14em;
+
+		text-decoration: none;
+
+		border-bottom:
+			1px solid
+			#dcecf4;
+	}
+
+	.schedule-link:hover {
+		color: #a69ccc;
+
+		border-color: #a69ccc;
+	}
+
+	/* =========================
+	   EVENT
+	========================= */
+
+	.event-card {
+		display: grid;
+
+		grid-template-columns:
+			108px
+			minmax(0, 1fr)
+			auto;
+
+		gap: 36px;
+
+		align-items: center;
+
+		padding:
+			28px
+			0;
+
+		border-top:
+			1px solid
+			#dcecf4;
+
+		border-bottom:
+			1px solid
+			#dcecf4;
+	}
+
+	/* =========================
+	   DATE
+	========================= */
+
+	.event-date {
+		display: flex;
+
+		flex-direction: column;
+
+		align-self: start;
+	}
+
+	.date-main {
+		color: #72aeca;
+
+		font-size: 32px;
+
+		line-height: 1;
+
+		font-weight: 500;
+
+		letter-spacing: -0.02em;
+	}
+
+	.date-weekday {
+		margin-top: 7px;
+
+		color: #a69ccc;
+
+		font-size: 9px;
+
+		letter-spacing: 0.16em;
+	}
+
+	/* =========================
+	   INFO
+	========================= */
+
+	.event-info {
+		min-width: 0;
+	}
+
+	.event-info h3 {
+		margin: 0;
+
+		color: #536e7c;
+
+		font-size: 20px;
+
+		line-height: 1.4;
+
+		font-weight: 500;
+	}
+
+	.event-meta {
+		margin-top: 13px;
+	}
+
+	.event-meta p {
+		margin: 5px 0;
+
+		color: #8298a3;
+
+		font-size: 11px;
+
+		line-height: 1.5;
+	}
+
+	.event-meta p > span {
+		display: inline-block;
+
+		width: 56px;
+
+		color: #8dbdd2;
+
+		font-size: 8px;
+
+		letter-spacing: 0.1em;
+	}
+
+	/* =========================
+	   MAP
+	========================= */
+
+	.venue-row {
+		display: flex;
+
+		align-items: center;
+
+		gap: 12px;
+	}
+
+	.venue-row p {
+		margin: 5px 0;
+	}
+
+	.map-link {
+		display: inline-flex;
+
+		align-items: center;
+		justify-content: center;
+
+		gap: 6px;
+
+		min-width: 72px;
+		height: 30px;
+
+		padding:
+			0
+			10px;
+
+		color: #718995;
+
+		font-size: 9px;
+
+		letter-spacing: 0.08em;
+
+		text-decoration: none;
+
+		border:
+			1px solid
+			#dcecf4;
+
+		border-radius: 16px;
+
+		background:
+			rgba(
+				245,
+				251,
+				254,
+				0.6
+			);
+	}
+
+	.map-link img {
+		display: block;
+
+		width: 16px;
+		height: 16px;
+
+		object-fit: contain;
+
+		filter:
+			invert(66%)
+			sepia(19%)
+			saturate(880%)
+			hue-rotate(158deg)
+			brightness(93%)
+			contrast(87%);
+	}
+
+	.map-link span {
+		width: auto;
+
+		color: inherit;
+
+		font-size: inherit;
+	}
+
+	.map-link:hover {
+		color: #a69ccc;
+
+		border-color: #c4bde3;
+	}
+
+	/* =========================
+	   OFFICIAL LINK
+	========================= */
+
+	.official-link {
+		display: inline-block;
+
+		margin-top: 10px;
+
+		padding-bottom: 3px;
+
+		color: #718995;
+
+		font-size: 10px;
+
+		text-decoration: none;
+
+		border-bottom:
+			1px solid
+			#dcecf4;
+	}
+
+	.official-link:hover {
+		color: #a69ccc;
+
+		border-color: #a69ccc;
+	}
+
+	/* =========================
+	   CALENDAR
+	========================= */
+
+	.calendar-action {
+		display: flex;
+
+		align-items: center;
+
+		justify-content: flex-end;
+
+		min-width: 102px;
+	}
+
+	.calendar-link {
+		display: inline-flex;
+
+		align-items: center;
+		justify-content: center;
+
+		gap: 9px;
+
+		min-width: 96px;
+		height: 42px;
+
+		padding:
+			0
+			15px;
+
+		color: #718995;
+
+		font-size: 11px;
+
+		letter-spacing: 0.08em;
+
+		text-decoration: none;
+
+		border:
+			1px solid
+			#dcecf4;
+
+		border-radius: 22px;
+
+		background:
+			rgba(
+				245,
+				251,
+				254,
+				0.65
+			);
+	}
+
+	.calendar-link img {
+		display: block;
+
+		width: 20px;
+		height: 20px;
+
+		object-fit: contain;
+
+		filter:
+			invert(66%)
+			sepia(19%)
+			saturate(880%)
+			hue-rotate(158deg)
+			brightness(93%)
+			contrast(87%);
+	}
+
+	.calendar-link:hover {
+		color: #a69ccc;
+
+		border-color: #c4bde3;
+	}
+
+	/* =========================
+	   NO EVENT
+	========================= */
+
+	.no-event {
+		margin: 0;
+
+		padding:
+			30px
+			0;
+
+		color: #8298a3;
+
+		font-size: 12px;
+
+		border-top:
+			1px solid
+			#dcecf4;
+
+		border-bottom:
+			1px solid
+			#dcecf4;
+	}
+
+	/* =========================
+	   MOBILE
+	========================= */
+
+	@media (max-width: 700px) {
+
+		.next-event {
+			padding:
+				60px
+				20px;
+		}
+
+		.section-heading {
+			margin-bottom: 24px;
+		}
+
+		.section-heading h2 {
+			font-size: 24px;
+		}
+
+		.schedule-link {
+			font-size: 8px;
+		}
+
+		.event-card {
+			grid-template-columns: 1fr;
+
+			gap: 10px;
+
+			padding:
+				20px
+				0;
+		}
+
+		.date-main {
+			font-size: 23px;
+		}
+
+		.date-weekday {
+			font-size: 8px;
+		}
+
+		.event-info h3 {
+			font-size: 15px;
+		}
+
+		.event-meta {
+			margin-top: 9px;
+		}
+
+		.event-meta p {
+			font-size: 9px;
+		}
+
+		.event-meta p > span {
+			width: 48px;
+
+			font-size: 7px;
+		}
+
+		.venue-row {
+			gap: 8px;
+
+			flex-wrap: wrap;
+		}
+
+		.map-link {
+			height: 28px;
+
+			min-width: 66px;
+
+			font-size: 8px;
+		}
+
+		.map-link img {
+			width: 14px;
+			height: 14px;
+		}
+
+		.official-link {
+			margin-top: 7px;
+
+			font-size: 8px;
+		}
+
+		.calendar-action {
+			min-width: 0;
+
+			margin-top: 4px;
+
+			justify-content: flex-end;
+		}
+
+		.calendar-link {
+			min-width: 86px;
+
+			height: 38px;
+
+			font-size: 10px;
+		}
+
+		.calendar-link img {
+			width: 18px;
+			height: 18px;
+		}
+
+	}
+
+</style>

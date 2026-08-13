@@ -1,0 +1,629 @@
+---
+import BaseLayout from "../layouts/BaseLayout.astro";
+import { works } from "../data/works";
+
+/*
+	新しい作品順に並べる
+*/
+const sortedWorks = [...works].sort((a, b) => {
+	return (
+		new Date(b.releaseDate).getTime() -
+		new Date(a.releaseDate).getTime()
+	);
+});
+
+/*
+	2026-08-10
+	↓
+	2026.08.10
+*/
+const formatDate = (dateString: string) => {
+	const [year, month, day] = dateString.split("-");
+
+	return `${year}.${month}.${day}`;
+};
+---
+
+<BaseLayout title="WORKS | KANNAGIMARO">
+
+	<main class="works-page">
+
+		<h1>WORKS</h1>
+
+		<!-- =========================
+		     FILTER
+		========================== -->
+
+		<div class="filter-area">
+
+			<button
+				class="filter-button active"
+				data-filter="ALL"
+			>
+				ALL
+			</button>
+
+			<button
+				class="filter-button"
+				data-filter="MUSIC"
+			>
+				MUSIC
+			</button>
+
+			<button
+				class="filter-button"
+				data-filter="LYRICS"
+			>
+				LYRICS
+			</button>
+
+		</div>
+
+		<!-- =========================
+		     WORKS
+		========================== -->
+
+		<div class="works-grid">
+
+			{
+				sortedWorks.map((work) => (
+
+					<article
+						class="work-item"
+						data-type={work.type}
+					>
+
+						<!-- IMAGE -->
+
+						<div class="cover">
+
+							{
+								work.image ? (
+									<img
+										src={work.image}
+										alt={work.title}
+									/>
+								) : (
+									<div class="no-image">
+										<span>
+											NO IMAGE
+										</span>
+									</div>
+								)
+							}
+
+						</div>
+
+						<!-- TYPE -->
+
+						<p class="type">
+							{work.type}
+						</p>
+
+						<!-- TITLE + LISTEN -->
+
+						<div class="title-row">
+
+							<h2>
+								{work.title}
+							</h2>
+
+							{
+								work.url &&
+								work.url !== "#" && (
+									<a
+										class="listen-link"
+										href={work.url}
+										target="_blank"
+										rel="noopener noreferrer"
+										aria-label={`${work.title}の配信ページを開く`}
+										title="LISTEN"
+									>
+										<img
+											src="/images/icons/applemusic.svg"
+											alt=""
+										/>
+									</a>
+								)
+							}
+
+						</div>
+
+						<!-- ARTIST -->
+
+						{
+							work.artist && (
+								<p class="artist">
+									{work.artist}
+								</p>
+							)
+						}
+
+						<!-- RELEASE DATE -->
+
+						<p class="release-date">
+							{formatDate(work.releaseDate)}
+						</p>
+
+					</article>
+
+				))
+			}
+
+		</div>
+
+	</main>
+
+</BaseLayout>
+
+<script>
+	const buttons =
+		document.querySelectorAll<HTMLButtonElement>(
+			".filter-button"
+		);
+
+	const items =
+		document.querySelectorAll<HTMLElement>(
+			".work-item"
+		);
+
+	buttons.forEach((button) => {
+		button.addEventListener("click", () => {
+
+			const filter =
+				button.dataset.filter;
+
+			buttons.forEach((item) => {
+				item.classList.remove("active");
+			});
+
+			button.classList.add("active");
+
+			items.forEach((item) => {
+
+				const type =
+					item.dataset.type;
+
+				if (
+					filter === "ALL" ||
+					filter === type
+				) {
+					item.hidden = false;
+				} else {
+					item.hidden = true;
+				}
+
+			});
+
+		});
+	});
+</script>
+
+<style>
+
+	/* =========================
+	   PAGE
+	========================= */
+
+	.works-page {
+		max-width: 1200px;
+
+		margin: 0 auto;
+
+		padding:
+			100px
+			40px
+			120px;
+	}
+
+	h1 {
+		margin:
+			8px
+			0
+			40px;
+
+		color: #72aeca;
+
+		font-size:
+			clamp(
+				40px,
+				5vw,
+				64px
+			);
+
+		line-height: 1;
+
+		font-weight: 500;
+
+		letter-spacing: 0.04em;
+	}
+
+	/* =========================
+	   FILTER
+	========================= */
+
+	.filter-area {
+		display: flex;
+
+		gap: 30px;
+
+		margin-bottom: 48px;
+
+		border-bottom:
+			1px solid
+			#dcecf4;
+	}
+
+	.filter-button {
+		position: relative;
+
+		padding:
+			0
+			0
+			12px;
+
+		background: none;
+
+		border: 0;
+
+		color: #9aadb6;
+
+		font: inherit;
+
+		font-size: 11px;
+
+		letter-spacing: 0.16em;
+
+		cursor: pointer;
+
+		transition:
+			color 0.2s ease;
+	}
+
+	.filter-button::after {
+		content: "";
+
+		position: absolute;
+
+		left: 0;
+		bottom: -1px;
+
+		width: 100%;
+		height: 1px;
+
+		background: #a69ccc;
+
+		transform: scaleX(0);
+
+		transition:
+			transform 0.2s ease;
+	}
+
+	.filter-button:hover {
+		color: #72aeca;
+	}
+
+	.filter-button.active {
+		color: #a69ccc;
+	}
+
+	.filter-button.active::after {
+		transform: scaleX(1);
+	}
+
+	/* =========================
+	   GRID
+	========================= */
+
+	.works-grid {
+		display: grid;
+
+		grid-template-columns:
+			repeat(
+				3,
+				1fr
+			);
+
+		gap:
+			64px
+			32px;
+	}
+
+	.work-item {
+		min-width: 0;
+	}
+
+	.work-item[hidden] {
+		display: none;
+	}
+
+	/* =========================
+	   COVER
+	========================= */
+
+	.cover {
+		width: 100%;
+
+		aspect-ratio: 1 / 1;
+
+		overflow: hidden;
+
+		background: #f2f8fb;
+
+		border-radius: 18px;
+	}
+
+	.cover img {
+		display: block;
+
+		width: 100%;
+		height: 100%;
+
+		object-fit: cover;
+
+		transition:
+			transform 0.35s ease;
+	}
+
+	.work-item:hover .cover > img {
+		transform: scale(1.03);
+	}
+
+	.no-image {
+		width: 100%;
+		height: 100%;
+
+		display: flex;
+
+		align-items: center;
+		justify-content: center;
+
+		background:
+			linear-gradient(
+				135deg,
+				#f8fcfe,
+				#edf6fb
+			);
+	}
+
+	.no-image span {
+		color: #b6cbd5;
+
+		font-size: 9px;
+
+		letter-spacing: 0.18em;
+	}
+
+	/* =========================
+	   TYPE
+	========================= */
+
+	.type {
+		margin:
+			16px
+			0
+			6px;
+
+		color: #a69ccc;
+
+		font-size: 11px;
+
+		letter-spacing: 0.18em;
+	}
+
+	/* =========================
+	   TITLE
+	========================= */
+
+	.title-row {
+		display: flex;
+
+		align-items: center;
+
+		gap: 10px;
+	}
+
+	.title-row h2 {
+		margin: 0;
+
+		color: #536e7c;
+
+		font-size: 22px;
+
+		line-height: 1.4;
+
+		font-weight: 500;
+	}
+
+	/* =========================
+	   LISTEN ICON
+	========================= */
+
+	.listen-link {
+		display: grid;
+
+		place-items: center;
+
+		width: 19px;
+		height: 19px;
+
+		flex-shrink: 0;
+
+		opacity: 0.72;
+
+		text-decoration: none;
+
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease;
+	}
+
+	.listen-link img {
+		display: block;
+
+		width: 100%;
+		height: 100%;
+
+		object-fit: contain;
+
+		/*
+			黒SVGを
+			カンナギマロの水色へ
+		*/
+		filter:
+			invert(66%)
+			sepia(19%)
+			saturate(880%)
+			hue-rotate(158deg)
+			brightness(93%)
+			contrast(87%);
+	}
+
+	.listen-link:hover {
+		opacity: 1;
+
+		transform:
+			translateY(-2px);
+	}
+
+	/* =========================
+	   ARTIST
+	========================= */
+
+	.artist {
+		margin:
+			8px
+			0
+			0;
+
+		color: #8298a3;
+
+		font-size: 12px;
+
+		line-height: 1.5;
+	}
+
+	/* =========================
+	   RELEASE DATE
+	========================= */
+
+	.release-date {
+		margin:
+			10px
+			0
+			0;
+
+		color: #9aadb6;
+
+		font-size: 12px;
+
+		letter-spacing: 0.08em;
+	}
+
+	/* =========================
+	   MOBILE
+	========================= */
+
+	@media (max-width: 700px) {
+
+		.works-page {
+			padding:
+				40px
+				20px
+				52px;
+		}
+
+		h1 {
+			margin:
+				0
+				0
+				24px;
+
+			font-size: 32px;
+		}
+
+		/* FILTER */
+
+		.filter-area {
+			gap: 22px;
+
+			margin-bottom: 30px;
+		}
+
+		.filter-button {
+			padding-bottom: 10px;
+
+			font-size: 9px;
+		}
+
+		/* GRID */
+
+		.works-grid {
+			grid-template-columns:
+				repeat(
+					2,
+					1fr
+				);
+
+			gap:
+				30px
+				14px;
+		}
+
+		.cover {
+			border-radius: 12px;
+		}
+
+		/* TYPE */
+
+		.type {
+			margin:
+				10px
+				0
+				4px;
+
+			font-size: 8px;
+		}
+
+		/* TITLE */
+
+		.title-row {
+			gap: 7px;
+		}
+
+		.title-row h2 {
+			font-size: 14px;
+
+			line-height: 1.4;
+		}
+
+		/* LISTEN */
+
+		.listen-link {
+			width: 15px;
+			height: 15px;
+		}
+
+		/* ARTIST */
+
+		.artist {
+			margin-top: 5px;
+
+			font-size: 9px;
+		}
+
+		/* DATE */
+
+		.release-date {
+			margin-top: 5px;
+
+			font-size: 8px;
+		}
+
+		.no-image span {
+			font-size: 7px;
+		}
+
+	}
+
+</style>
