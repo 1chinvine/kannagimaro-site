@@ -4,15 +4,118 @@ import Footer from "../components/Footer.astro";
 
 import "../styles/global.css";
 
-const { title = "KANNAGIMARO" } = Astro.props;
+const {
+	title = "KANNAGIMARO",
+	description = "音楽・作詞を中心に活動するカンナギマロの非公式ファンサイト。",
+} = Astro.props;
+
+/*
+	現在開いているページのURL
+*/
+const canonicalURL = new URL(Astro.url.pathname, Astro.site);
+
+/*
+	OGPに使用する画像
+	TOPページのメイン画像をそのまま使用
+*/
+const ogImage = new URL(
+	"/images/kannagimaro-main.jpg",
+	Astro.site
+);
 ---
 
 <html lang="ja">
 	<head>
 		<meta charset="utf-8" />
-		<meta name="viewport" content="width=device-width" />
-		<meta name="generator" content={Astro.generator} />
+
+		<meta
+			name="viewport"
+			content="width=device-width"
+		/>
+
+		<meta
+			name="generator"
+			content={Astro.generator}
+		/>
+
+		<!-- =========================
+		     BASIC
+		========================= -->
+
 		<title>{title}</title>
+
+		<meta
+			name="description"
+			content={description}
+		/>
+
+		<link
+			rel="canonical"
+			href={canonicalURL}
+		/>
+
+		<!-- =========================
+		     OGP
+		========================= -->
+
+		<meta
+			property="og:type"
+			content="website"
+		/>
+
+		<meta
+			property="og:title"
+			content={title}
+		/>
+
+		<meta
+			property="og:description"
+			content={description}
+		/>
+
+		<meta
+			property="og:url"
+			content={canonicalURL}
+		/>
+
+		<meta
+			property="og:image"
+			content={ogImage}
+		/>
+
+		<meta
+			property="og:site_name"
+			content="KANNAGIMARO"
+		/>
+
+		<meta
+			property="og:locale"
+			content="ja_JP"
+		/>
+
+		<!-- =========================
+		     X / TWITTER
+		========================= -->
+
+		<meta
+			name="twitter:card"
+			content="summary_large_image"
+		/>
+
+		<meta
+			name="twitter:title"
+			content={title}
+		/>
+
+		<meta
+			name="twitter:description"
+			content={description}
+		/>
+
+		<meta
+			name="twitter:image"
+			content={ogImage}
+		/>
 	</head>
 
 	<body>
