@@ -42,27 +42,19 @@ const ogImage = new URL(
 ---
 
 <html lang="ja">
+
 	<head>
+
 		<meta charset="utf-8" />
 
 		<meta
 			name="viewport"
-			content="width=device-width"
+			content="width=device-width, initial-scale=1"
 		/>
 
 		<meta
 			name="generator"
 			content={Astro.generator}
-		/>
-
-		<!-- =========================
-		     FAVICON
-		========================= -->
-
-		<link
-			rel="icon"
-			type="image/jpeg"
-			href="/images/kannagimaro-main.jpg"
 		/>
 
 		<!-- =========================
@@ -79,6 +71,54 @@ const ogImage = new URL(
 		<link
 			rel="canonical"
 			href={canonicalURL}
+		/>
+
+		<!-- =========================
+		     FAVICON
+		========================= -->
+
+		<link
+			rel="icon"
+			type="image/jpeg"
+			href="/images/kannagimaro-app-icon.jpg"
+		/>
+
+		<!-- =========================
+		     PWA
+		========================= -->
+
+		<link
+			rel="manifest"
+			href="/manifest.webmanifest"
+		/>
+
+		<meta
+			name="theme-color"
+			content="#ffffff"
+		/>
+
+		<!-- =========================
+		     iPhone / iPad
+		========================= -->
+
+		<link
+			rel="apple-touch-icon"
+			href="/images/kannagimaro-app-icon.jpg"
+		/>
+
+		<meta
+			name="apple-mobile-web-app-capable"
+			content="yes"
+		/>
+
+		<meta
+			name="apple-mobile-web-app-status-bar-style"
+			content="default"
+		/>
+
+		<meta
+			name="apple-mobile-web-app-title"
+			content="カンナギマロ"
 		/>
 
 		<!-- =========================
@@ -115,13 +155,8 @@ const ogImage = new URL(
 			content={siteName}
 		/>
 
-		<meta
-			property="og:locale"
-			content="ja_JP"
-		/>
-
 		<!-- =========================
-		     X / TWITTER
+		     X / Twitter
 		========================= -->
 
 		<meta
@@ -143,13 +178,17 @@ const ogImage = new URL(
 			name="twitter:image"
 			content={ogImage}
 		/>
+
 	</head>
 
 	<body>
+
 		<Header />
 
 		<slot />
 
 		<Footer />
+
 	</body>
+
 </html>
