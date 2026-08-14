@@ -531,12 +531,6 @@ const [
 						id="calendar-days"
 					></div>
 
-					<p class="calendar-note">
-						水色の日付は予定あり。
-						<br />
-						クリックすると該当項目へ移動します。
-					</p>
-
 				</div>
 
 			</aside>
@@ -547,7 +541,9 @@ const [
 
 			<div class="schedule-content">
 
-				<!-- UPCOMING -->
+				<!-- =====================
+				     UPCOMING
+				====================== -->
 
 				<section
 					class="schedule-section"
@@ -933,7 +929,8 @@ const [
 	define:vars={{
 		calendarItems,
 		initialYear,
-		initialMonth
+		initialMonth,
+		today
 	}}
 >
 	const monthNames = [
@@ -1117,6 +1114,9 @@ const [
 						date
 					);
 
+				const isToday =
+					date === today;
+
 				const element =
 					document.createElement(
 						hasSchedule
@@ -1129,6 +1129,25 @@ const [
 
 				element.textContent =
 					day;
+
+				/* =====================
+				   TODAY
+				===================== */
+
+				if (isToday) {
+					element.classList.add(
+						"is-today"
+					);
+
+					element.setAttribute(
+						"aria-current",
+						"date"
+					);
+				}
+
+				/* =====================
+				   SCHEDULE
+				===================== */
 
 				if (hasSchedule) {
 
@@ -1650,6 +1669,26 @@ const [
 			none;
 	}
 
+	/* =========================
+	   TODAY
+	========================= */
+
+	:global(.calendar-day.is-today) {
+		outline:
+			2px solid
+			#72aeca;
+
+		outline-offset:
+			2px;
+
+		font-weight:
+			600;
+	}
+
+	/* =========================
+	   EVENT DAY
+	========================= */
+
 	:global(.calendar-day.has-schedule) {
 		background:
 			#72aeca;
@@ -1668,35 +1707,31 @@ const [
 			transform 0.2s ease;
 	}
 
+	/*
+		今日かつ予定ありの場合
+
+		内側：
+		水色塗り＋白文字
+
+		外側：
+		今日を示すリング
+	*/
+
+	:global(.calendar-day.has-schedule.is-today) {
+		outline:
+			2px solid
+			#72aeca;
+
+		outline-offset:
+			3px;
+	}
+
 	:global(.calendar-day.has-schedule:hover) {
 		opacity:
 			0.82;
 
 		transform:
 			translateY(-1px);
-	}
-
-	.calendar-note {
-		margin:
-			24px
-			0
-			0;
-
-		padding-top:
-			18px;
-
-		border-top:
-			1px solid
-			#dcecf4;
-
-		color:
-			#9aadb6;
-
-		font-size:
-			10px;
-
-		line-height:
-			1.7;
 	}
 
 	/* =========================
@@ -2204,7 +2239,7 @@ const [
 
 	/* =========================
 	   TABLET
-	   ここから縦積みにする
+	   ここから縦積み
 	========================= */
 
 	@media (max-width: 900px) {
@@ -2225,17 +2260,6 @@ const [
 			gap:
 				52px;
 		}
-
-		/*
-			HTML上でもカレンダーが先だが、
-			orderを明示して絶対に
-
-			カレンダー
-			  ↓
-			イベント一覧
-
-			にする
-		*/
 
 		.calendar-area {
 			order: 1;
@@ -2376,15 +2400,17 @@ const [
 				12px;
 		}
 
-		.calendar-note {
-			margin-top:
-				18px;
+		:global(.calendar-day.is-today) {
+			outline-width:
+				2px;
 
-			padding-top:
-				14px;
+			outline-offset:
+				1px;
+		}
 
-			font-size:
-				8px;
+		:global(.calendar-day.has-schedule.is-today) {
+			outline-offset:
+				2px;
 		}
 
 		/* LIST */
